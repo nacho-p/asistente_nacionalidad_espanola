@@ -1,17 +1,17 @@
 import { ChevronLeft, ChevronRight, Info, RefreshCw, RotateCcw, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
-import { DECISION_TREE, type Option } from './decisionTree';
+import { DECISION_TREE, RESULT_LABELS, type Option, type ResultKey } from './decisionTree';
 
 export default function App() {
   const [currentStepId, setCurrentStepId] = useState<string>('start');
   const [history, setHistory] = useState<string[]>([])
-  const [result, setResult] = useState<string | null>(null);
+  const [resultKey, setResultKey] = useState<ResultKey | null>(null);
 
   const handleSelect = (option: Option) => {
     setHistory([...history, currentStepId])
 
     if (option.result) {
-      setResult(option.result);
+      setResultKey(option.result);
     } else if (option.nextStepId) {
       setCurrentStepId(option.nextStepId);
     }
@@ -27,10 +27,11 @@ export default function App() {
 
   const reset = () => {
     setCurrentStepId('start');
-    setResult(null);
+    setHistory([]);
+    setResultKey(null);
   };
 
-  if (result) {
+  if (resultKey) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
         <div className="bg-white p-8 rounded-2xl shadow-xl max-w-md w-full border-t-4 border-yellow-500">
@@ -41,7 +42,7 @@ export default function App() {
             <h2 className="text-2xl font-bold text-slate-800">Resultado</h2>
           </div>
           <div className="bg-slate-100 p-4 rounded-lg mb-6 text-center">
-            <p className="text-lg font-semibold text-slate-700">{result}</p>
+            <p className="text-lg font-semibold text-slate-700">{RESULT_LABELS[resultKey]}</p>
           </div>
           <button 
             onClick={reset}
@@ -59,7 +60,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 font-sans">
       <header className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-blue-900 mb-2">Consulado de España</h1>
+        <h1 className="text-3xl font-bold text-blue-900 mb-2">Consulado de España en Buenos Aires</h1>
         <p className="text-slate-600">Asistente de Determinación de Nacionalidad</p>
       </header>
 
@@ -101,6 +102,8 @@ export default function App() {
         <div className="mt-8 flex items-start gap-3 p-4 bg-yellow-50 rounded-lg">
           <Info className="w-5 h-5 text-yellow-600 shrink-0" />
           <p className="text-sm text-yellow-800 italic">
+            El sistema permite navegar por el árbol de decisiones. Usa "volver atrás" para corregir un paso o "Reiniciar" para borrar todo.
+
             Nota: Esta herramienta es una guía orientativa. La resolución final queda sujeta a la revisión de la documentación original presentada ante el cónsul.
           </p>
         </div>

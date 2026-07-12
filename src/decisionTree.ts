@@ -1,7 +1,37 @@
+type ResultKey = 
+    | 'NACIONALIDAD_ORIGEN'
+    | 'NACIONALIDAD_ORIGEN_LMD'
+    | 'OPCION'
+    | 'NO_PUEDE'
+    | 'NO_PUEDE_NAT_PREVIA'
+    | 'NO_PUEDE_LEJANO'
+    | 'RECUPERA'
+    | 'DISPENSA'
+    | 'CONSULTA';
+
+const RESULT_LABELS: Record<ResultKey, string> = {
+    'NACIONALIDAD_ORIGEN': 'NACIONALIDAD DE ORIGEN',
+    'NACIONALIDAD_ORIGEN_LMD': 'NACIONALIDAD DE ORIGEN (Ley Memoria Democrática)',
+    'OPCION': 'NACIONALIDAD POR OPCIÓN',
+    'NO_PUEDE': 'NO PUEDE OBTENER LA NACIONALIDAD ESPAÑOLA',
+    'NO_PUEDE_NAT_PREVIA': 'NO PUEDE OBTENER LA NACIONALIDAD ESPAÑOLA (Por naturalización previa)',
+    'NO_PUEDE_LEJANO': 'NO PUEDE OBTENER LA NACIONALIDAD ESPAÑOLA (Grado de parentesco muy lejano)',
+    'RECUPERA': 'DEBE RECUPERAR',
+    'DISPENSA': 'DISPENSA',
+    'CONSULTA': 'CONSULTAR CASO PARTICULAR'
+}
+
+const padre_recuperar = 'Su padre deberá recuperar la nacionalidad española mientras ud. sea aún menor de edad';
+const madre_recuperar = 'Su madre deberá recuperar la nacionalidad española mientras ud. sea aún menor de edad';
+const padre_inscribir = 'Su padre deberá inscribir su nacimiento en el Registro Civil Español antes que ud. pueda presentar su solicitud';
+const madre_inscribir = 'Su madre deberá inscribir su nacimiento en el Registro Civil Español antes que ud. pueda presentar su solicitud';
+const padre_madre_adquirir_a = 'Su padre/madre deberá adquirir la nacionalidad española mientras ud. sea aún menor de edad'
+const padre_madre_adquirir_b = 'Su padre/madre deberá adquirir la nacionalidad española antes que ud. pueda presentar su solicitud'
+
 interface Option {
   label: string;
   nextStepId?: string | null;
-  result?: string;
+  result?: ResultKey;
 }
 
 interface Step {
@@ -34,17 +64,17 @@ const DECISION_TREE: DecisionTree = {
     },
   },
   padre_naturalizo: {
-    question: '¿Su padre se naturalizó Argentino?',
+    question: 'Su padre...',
     options: {
-      si: { label: 'Sí', nextStepId: 'adquirio_1978' },
-      no: { label: 'No', nextStepId: 'ud_nacio_1960' },
+      si: { label: 'se naturalizó Argentino', nextStepId: 'adquirio_1978' },
+      no: { label: 'nunca se naturalizó Argentino', nextStepId: 'ud_nacio_1960' },
     },
   },
   ud_nacio_1960: {
     question: 'Ud. nació...',
     options: {
       si: { label: 'antes del 29/12/1960', nextStepId: 'ud_nacio_1941' },
-      no: { label: 'a partir del 29/12/1960', result: 'NACIONALIDAD DE ORIGEN' },
+      no: { label: 'a partir del 29/12/1960', result: 'NACIONALIDAD_ORIGEN' },
     },
   },
   ud_nacio_1941: {
@@ -65,7 +95,7 @@ const DECISION_TREE: DecisionTree = {
     question: '¿Ud. hizo el servicio militar argentino?',
     options: {
       si: { label: 'Sí', result: 'RECUPERA' },
-      no: { label: 'No', result: 'NACIONALIDAD DE ORIGEN' },
+      no: { label: 'Fue exceptuado', result: 'NACIONALIDAD_ORIGEN' },
     },
   },
   adquirio_1978: {
@@ -97,23 +127,23 @@ const DECISION_TREE: DecisionTree = {
         nextStepId: 'ud_era_menor',
       },
       era: {
-        label: 'era español cuando ud. nació',
+        label: 'ya era español cuando ud. nació',
         nextStepId: 'ud_nacio_1960_b',
       },
     },
   },
   ud_era_menor: {
-    question: '¿Ud. era menor de edad cuando su padre adquirió la nacionalidad española?',
+    question: 'Cuando su padre adquirió la nacionalidad española ud. era...',
     options: {
-      si: { label: 'Sí', nextStepId: 'ud_tiene_19_o_menos' },
-      no: { label: 'No', result: 'NO PUEDE' },
+      si: { label: 'menor de edad', nextStepId: 'ud_tiene_19_o_menos' },
+      no: { label: 'mayor de edad', result: 'NO_PUEDE' },
     },
   },
   ud_tiene_19_o_menos: {
     question: 'Ud. tiene hoy...',
     options: {
       si: { label: '19 años o menos', result: 'OPCION' },
-      no: { label: '20 años o más', result: 'NO PUEDE' },
+      no: { label: '20 años o más', result: 'NO_PUEDE' },
     },
   },
   ud_nacio_1960_b: {
@@ -141,20 +171,20 @@ const DECISION_TREE: DecisionTree = {
     question: '¿Ud. hizo el servicio militar argentino?',
     options: {
       si: { label: 'Sí', result: 'DISPENSA' },
-      no: { label: 'No', result: 'NACIONALIDAD DE ORIGEN' },
+      no: { label: 'Fue exceptuado', result: 'NACIONALIDAD_ORIGEN' },
     },
   },
   ud_nacio_1985: {
     question: 'Ud. nació...',
     options: {
-      si: { label: 'antes del 09/01/1985', result: 'NACIONALIDAD DE ORIGEN' },
+      si: { label: 'antes del 09/01/1985', result: 'NACIONALIDAD_ORIGEN' },
       no: { label: 'a partir del 09/01/1985', nextStepId: 'ud_tiene_20_o_menos' },
     },
   },
   ud_tiene_20_o_menos: {
     question: 'Ud. tiene hoy...',
     options: {
-      si: { label: '20 años o menos', result: 'NACIONALIDAD DE ORIGEN' },
+      si: { label: '20 años o menos', result: 'NACIONALIDAD_ORIGEN' },
       no: { label: '21 años o más', result: 'DISPENSA' },
     },
   },
@@ -167,39 +197,39 @@ const DECISION_TREE: DecisionTree = {
     },
   },
   madre_estaba_casada: {
-    question: '¿Su madre estaba casada cuando ud. nació?',
+    question: 'Cuando ud. nació, su madre...',
     options: {
-      si: { label: 'Sí', nextStepId: 'caso_1954_a' },
-      no: { label: 'No', nextStepId: 'caso_1954_b' },
-      nunca: { label: 'Nunca se casó', nextStepId: 'padre_reconocio' },
+      si: { label: 'estaba casada', nextStepId: 'caso_1954_a' },
+      no: { label: 'no estaba casada', nextStepId: 'caso_1954_b' },
     },
-  },
-  caso_1954_a: {
+},
+caso_1954_a: {
     question: 'Su madre se casó...',
     options: {
-      si: { label: 'antes de 1954', result: 'OPCION' },
+        si: { label: 'antes de 1954', result: 'OPCION' },
       no: { label: 'a partir de 1954', nextStepId: 'caso_con_argentino_a' },
     },
-  },
-  caso_1954_b: {
-    question: 'Su madre se casó...',
+},
+caso_1954_b: {
+    question: 'Su madre...',
     options: {
-      si: { label: 'antes de 1954', result: 'OPCION' },
-      no: { label: 'a partir de 1954', nextStepId: 'caso_con_argentino_b' },
+        si: { label: 'se casó antes de 1954', result: 'OPCION' },
+        no: { label: 'se casó a partir de 1954', nextStepId: 'caso_con_argentino_b' },
+        nunca: { label: 'nunca se casó', nextStepId: 'padre_reconocio' },
     },
   },
   caso_con_argentino_a: {
     question: 'Su madre...',
     options: {
-      si: { label: 'se casó con un argentino', nextStepId: 'madre_naturalizo_a' },
-      no: { label: 'no se casó con un argentino', result: 'CONSULTA' },
+      si: { label: 'se casó con argentino', nextStepId: 'madre_naturalizo_a' },
+      no: { label: 'no se casó con argentino', result: 'CONSULTA' },
     },
   },
   caso_con_argentino_b: {
     question: 'Su madre...',
     options: {
-      si: { label: 'se casó con un argentino', nextStepId: 'madre_naturalizo_a' },
-      no: { label: 'no se casó con un argentino', nextStepId: 'caso_1975' },
+      si: { label: 'se casó con argentino', nextStepId: 'madre_naturalizo_a' },
+      no: { label: 'no se casó con argentino', nextStepId: 'caso_1975' },
     },
   },
   caso_1975: {
@@ -213,7 +243,7 @@ const DECISION_TREE: DecisionTree = {
     question: '¿Su madre se naturalizó argentina?',
     options: {
       si: { label: 'Sí', nextStepId: 'madre_adquirio_1978_a' },
-      no: { label: 'No', nextStepId: 'ud_nacio_1978_a' },
+      no: { label: 'Nunca', nextStepId: 'ud_nacio_1978_a' },
     },
   },
   madre_adquirio_1978_a: {
@@ -228,21 +258,21 @@ const DECISION_TREE: DecisionTree = {
     question: 'Ud. nació...',
     options: {
       si: { label: 'antes del 29/12/1978', result: 'OPCION' },
-      no: { label: 'a partir del 29/12/1978', result: 'NACIONALIDAD DE ORIGEN' },
+      no: { label: 'a partir del 29/12/1978', result: 'NACIONALIDAD_ORIGEN' },
     },
   },
   padre_reconocio: {
     question: '¿Ud. fue reconocido por su padre?',
     options: {
       si: { label: 'Sí', result: 'CONSULTA' },
-      no: { label: 'No', nextStepId: 'madre_naturalizo_b' },
+      no: { label: 'Nunca', nextStepId: 'madre_naturalizo_b' },
     },
   },
   madre_naturalizo_b: {
     question: '¿Su madre se naturalizó argentina?',
     options: {
       si: { label: 'Sí', nextStepId: 'adquirio_1978' },
-      no: { label: 'No', nextStepId: 'ud_nacio_1960' },
+      no: { label: 'Nunca', nextStepId: 'ud_nacio_1960' },
     },
   },
   madre_era_espanola: {
@@ -270,7 +300,7 @@ const DECISION_TREE: DecisionTree = {
     question: '¿Su abuelo/a adquirió la nacionalidad Argentina?',
     options: {
       si: { label: 'Sí', nextStepId: 'antes_de_1978' },
-      no: { label: 'No', nextStepId: 'cual_abuelo' },
+      no: { label: 'Nunca', nextStepId: 'cual_abuelo' },
     },
   },
   antes_de_1978: {
@@ -315,26 +345,24 @@ const DECISION_TREE: DecisionTree = {
     question: '¿Su padre hizo el servicio militar argentino?',
     options: {
       si: { label: 'Sí', nextStepId: 'ud_tiene_18_o_menos_a' },
-      no: { label: 'No', nextStepId: 'padre_inscribe' },
+      no: { label: 'Fue exceptuado', nextStepId: 'padre_inscribe' },
     },
   },
   ud_tiene_18_o_menos_a: {
     question: 'Ud. tiene hoy...',
     options: {
       si: { label: '18 años o menos', nextStepId: 'padre_recupera' },
-      no: { label: '19 años o más', result: 'NO PUEDE' },
+      no: { label: '19 años o más', result: 'NO_PUEDE' },
     },
   },
   padre_recupera: {
-    question:
-      'Su padre deberá recuperar la nacionalidad española mientras ud. sea aún menor de edad',
+    question: padre_recuperar,
     options: {
       continuar: { label: 'Continuar', result: 'OPCION' },
     },
   },
   padre_inscribe: {
-    question:
-      'Su padre deberá inscribir su nacimiento en el Registro Civil Español',
+    question: padre_inscribir,
     options: {
       continuar: { label: 'Continuar', nextStepId: 'ud_nacio_1960_b' },
     },
@@ -350,26 +378,24 @@ const DECISION_TREE: DecisionTree = {
     question: 'Ud. tiene hoy...',
     options: {
       si: { label: '18 años o menos', nextStepId: 'madre_recupera' },
-      no: { label: '19 años o más', result: 'NO PUEDE' },
+      no: { label: '19 años o más', result: 'NO_PUEDE' },
     },
   },
   ud_nacio_1978: {
     question: 'Ud. nació...',
     options: {
       si: { label: 'antes del 29/12/1978', nextStepId: 'madre_inscribe' },
-      no: { label: 'a partir del 29/12/1978', result: 'NO PUEDE' },
+      no: { label: 'a partir del 29/12/1978', result: 'NO_PUEDE' },
     },
   },
   madre_recupera: {
-    question:
-      'Su madre deberá recuperar la nacionalidad española mientras ud. sea aún menor de edad',
+    question: madre_recuperar,
     options: {
       continuar: { label: 'Continuar', result: 'OPCION' },
     },
   },
   madre_inscribe: {
-    question:
-      'Su madre deberá inscribir su nacimiento en el Registro Civil Español',
+    question: madre_inscribir,
     options: {
       continuar: { label: 'Continuar', nextStepId: 'ud_nacio_1985' },
     },
@@ -399,12 +425,11 @@ const DECISION_TREE: DecisionTree = {
     question: 'Ud. tiene hoy...',
     options: {
       si: { label: '17 años o menos', nextStepId: 'madre_adquiere_a' },
-      no: { label: '18 años o más', result: 'NO PUEDE' },
+      no: { label: '18 años o más', result: 'NO_PUEDE' },
     },
   },
   madre_adquiere_a: {
-    question:
-      'Su madre deberá adquirir la nacionalidad española mientras ud. sea aún menor de edad',
+    question: padre_madre_adquirir_a,
     options: {
       continuar: { label: 'Continuar', result: 'OPCION' },
     },
@@ -417,8 +442,7 @@ const DECISION_TREE: DecisionTree = {
     },
   },
   madre_adquiere_b: {
-    question:
-      'Su madre deberá adquirir la nacionalidad española antes que usted',
+    question: padre_madre_adquirir_b,
     options: {
       continuar: { label: 'Continuar', nextStepId: 'ud_tiene_20_o_menos' },
     },
@@ -427,7 +451,7 @@ const DECISION_TREE: DecisionTree = {
     question: '¿Su padre/madre fue reconocido por el padre?',
     options: {
       si: { label: 'Sí', result: 'CONSULTA' },
-      no: { label: 'No', nextStepId: 'padre_madre_nacio_1960' },
+      no: { label: 'Nunca', nextStepId: 'padre_madre_nacio_1960' },
     },
   },
   padre_madre_nacio_1960: {
@@ -445,10 +469,10 @@ const DECISION_TREE: DecisionTree = {
     },
   },
   es_su_padre: {
-    question: 'Se trata de...',
+    question: 'Se trata de su...',
     options: {
-      no: { label: 'su madre', nextStepId: 'ud_tiene_18_o_menos_c' },
-      si: { label: 'su padre', nextStepId: 'padre_hizo_servicio_militar' },
+      no: { label: 'madre', nextStepId: 'ud_tiene_18_o_menos_c' },
+      si: { label: 'padre', nextStepId: 'padre_hizo_servicio_militar' },
     },
   },
   padre_madre_habia_nacido: {
@@ -463,7 +487,7 @@ const DECISION_TREE: DecisionTree = {
       'Cuando su padre adquirió la nacionalidad española ud. era...',
     options: {
       no: { label: 'menor de edad', nextStepId: 'ud_tiene_19_o_menos' },
-      si: { label: 'mayor de edad', result: 'NO PUEDE' },
+      si: { label: 'mayor de edad', result: 'NO_PUEDE' },
     },
   },
   padre_era_mayor: {
@@ -492,9 +516,9 @@ const DECISION_TREE: DecisionTree = {
     question: '¿Su padre hizo el servicio militar argentino?',
     options: {
       si: { label: 'Sí', nextStepId: 'ud_era_mayor' },
-      no: { label: 'No', nextStepId: 'ud_nacio_1985' },
+      no: { label: 'Fue exceptuado', nextStepId: 'ud_nacio_1985' },
     },
   },
 };
 
-export { DECISION_TREE, type Option, type Step };
+export { DECISION_TREE, RESULT_LABELS, type Option, type ResultKey, type Step };
